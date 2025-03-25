@@ -1,20 +1,33 @@
-// STDISCM.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
+#include "DungeonQueueSystem.h"
 #include <iostream>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+int main() {
+    unsigned int n, t, h, d, t1, t2;
+
+    std::cout << "Enter the maximum number of concurrent instances (n): ";
+    std::cin >> n;
+
+    std::cout << "Enter the number of tank players in queue (t): ";
+    std::cin >> t;
+
+    std::cout << "Enter the number of healer players in queue (h): ";
+    std::cin >> h;
+
+    std::cout << "Enter the number of DPS players in queue (d): ";
+    std::cin >> d;
+
+    std::cout << "Enter the minimum time before an instance is finished (t1): ";
+    std::cin >> t1;
+
+    std::cout << "Enter the maximum time before an instance is finished (t2): ";
+    std::cin >> t2;
+
+    if (t2 > 15) {
+        std::cout << "Warning: t2 exceeds the recommended maximum of 15 seconds\n";
+    }
+
+    DungeonQueueSystem system(n, t, h, d, t1, t2);
+    system.start();
+
+    return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
