@@ -4,14 +4,18 @@
 #include <chrono>
 #include <algorithm>
 
+// Instance Constructor
 DungeonQueueSystem::Instance::Instance()
     : active(false), partiesServed(0), totalTimeServed(0),
     tankId(0), healerId(0), dpsIds(3, 0) {}
 
+// Instance Reset Method
 void DungeonQueueSystem::Instance::reset() {
-    *this = Instance();
+    active = false;
+    // Do NOT reset partiesServed and totalTimeServed
 }
 
+// Constructor
 DungeonQueueSystem::DungeonQueueSystem(unsigned int maxInstances, unsigned int tanks,
     unsigned int healers, unsigned int dps,
     unsigned int minTime, unsigned int maxTime)
@@ -21,6 +25,7 @@ DungeonQueueSystem::DungeonQueueSystem(unsigned int maxInstances, unsigned int t
     instances.resize(n);
     timeDist = std::uniform_int_distribution<unsigned int>(t1, t2);
 
+    // Populate player queues
     for (unsigned int i = 1; i <= tanks; ++i)
         tankQueue.push(i);
     for (unsigned int i = 1; i <= healers; ++i)
@@ -29,17 +34,24 @@ DungeonQueueSystem::DungeonQueueSystem(unsigned int maxInstances, unsigned int t
         dpsQueue.push(i + tanks + healers);
 }
 
+// Find Available Instance
 unsigned int DungeonQueueSystem::findAvailableInstance() {
-    auto it = std::find_if(instances.begin(), instances.end(),
-        [](const Instance& inst) { return !inst.active; });
-
-    return (it != instances.end()) ? std::distance(instances.begin(), it) : -1;
+    for (unsigned int i = 0; i < instances.size(); ++i) {
+        if (!instances[i].active) {
+            return i;
+        }
+    }
+    return instances.size(); // Indicates no available instance
 }
 
+// Check if Party Can Be Formed
 bool DungeonQueueSystem::canFormParty() const {
-    return tankQueue.size() && healerQueue.size() && dpsQueue.size() >= 3;
+    return !tankQueue.empty() &&
+        !healerQueue.empty() &&
+        dpsQueue.size() >= 3;
 }
 
+// Form Party
 void DungeonQueueSystem::formParty(unsigned int instanceId) {
     auto& instance = instances[instanceId];
 
@@ -56,7 +68,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
     instance.totalTimeServed += clearTime;
     instance.partiesServed++;
 
-    // Existing print statements remain unchanged
+    // Print party formation details
     std::cout << "Party formed and assigned to instance " << instanceId + 1 << ":\n";
     std::cout << "  Tank: Player " << instance.tankId << "\n";
     std::cout << "  Healer: Player " << instance.healerId << "\n";
@@ -68,6 +80,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
     std::cout << "\n";
     std::cout << "  Clear time: " << clearTime << " seconds\n\n";
 
+    // Spawn a thread to manage instance duration
     std::thread([this, instanceId, clearTime]() {
         std::this_thread::sleep_for(std::chrono::seconds(clearTime));
 
@@ -78,6 +91,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
         }).detach();
 }
 
+// Start Method
 void DungeonQueueSystem::start() {
     std::cout << "Starting dungeon queue system with:\n";
     std::cout << "  Maximum instances: " << n << "\n";
@@ -87,7 +101,7 @@ void DungeonQueueSystem::start() {
     std::cout << "  Clear time range: " << t1 << "-" << t2 << " seconds\n\n";
 
     // Check if there are enough players to start
-    if (!tankQueue.size() || !healerQueue.size() || dpsQueue.size() < 3) {
+    if (tankQueue.empty() || healerQueue.empty() || dpsQueue.size() < 3) {
         std::cout << "Error: Not enough players to start a dungeon party.\n";
         std::cout << "  Required: 1 tank, 1 healer, 3 DPS\n";
         std::cout << "  Current queue: "
@@ -102,20 +116,20 @@ void DungeonQueueSystem::start() {
     while (running) {
         std::unique_lock<std::mutex> lock(mtx);
 
-        std::cout << secondCounter << " Seconds" << ":\n";
+        std::cout << secondCounter << " Seconds:\n";
         printStatus();
 
         bool formed = false;
         while (canFormParty()) {
             auto instanceId = findAvailableInstance();
-            if (instanceId == -1) break;
+            if (instanceId == instances.size()) break;
 
             formParty(instanceId);
             formed = true;
         }
 
         if (!formed) {
-            if (!tankQueue.size() || !healerQueue.size() || dpsQueue.size() < 3) {
+            if (tankQueue.empty() || healerQueue.empty() || dpsQueue.size() < 3) {
                 if (std::all_of(instances.begin(), instances.end(),
                     [](const Instance& i) { return !i.active; })) {
                     running = false;
@@ -130,16 +144,24 @@ void DungeonQueueSystem::start() {
         }
 
         secondCounter++;
+
+        // Safety mechanism to prevent infinite loop
+        if (secondCounter > 100) {
+            std::cout << "Maximum simulation time reached\n";
+            running = false;
+        }
     }
 
     printFinalSummary();
 }
 
+// Check if All Instances Are Empty
 bool DungeonQueueSystem::areAllInstancesEmpty() const {
     return std::none_of(instances.begin(), instances.end(),
         [](const Instance& i) { return i.active; });
 }
 
+// Print Current Status
 void DungeonQueueSystem::printStatus() const {
     std::cout << "Current Instance Status:\n";
     for (unsigned int i = 0; i < n; i++) {
@@ -152,6 +174,7 @@ void DungeonQueueSystem::printStatus() const {
     std::cout << "  DPS: " << dpsQueue.size() << "\n\n";
 }
 
+// Print Final Summary
 void DungeonQueueSystem::printFinalSummary() const {
     std::cout << "\n=== Final Summary ===\n";
     std::cout << std::left << std::setw(15) << "Instance"

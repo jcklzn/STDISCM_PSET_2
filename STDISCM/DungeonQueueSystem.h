@@ -40,11 +40,10 @@ private:
 public:
     DungeonQueueSystem(unsigned int n, unsigned int t, unsigned int h,
         unsigned int d, unsigned int t1, unsigned int t2);
-
     void start();
     bool areAllInstancesEmpty() const;
     void printStatus() const;
     void printFinalSummary() const;
 };
 
-#endif#pragma once
+#endif
