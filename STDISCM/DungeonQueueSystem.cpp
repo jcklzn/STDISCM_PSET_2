@@ -146,7 +146,7 @@ void DungeonQueueSystem::start() {
         secondCounter++;
 
         // Safety mechanism to prevent infinite loop
-        if (secondCounter > 100) {
+        if (secondCounter > 1000) {
             std::cout << "Maximum simulation time reached\n";
             running = false;
         }
