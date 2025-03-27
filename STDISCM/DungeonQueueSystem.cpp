@@ -41,7 +41,7 @@ unsigned int DungeonQueueSystem::findAvailableInstance() {
             return i;
         }
     }
-    return instances.size(); // Indicates no available instance
+    return instances.size(); 
 }
 
 // Check if Party Can Be Formed
@@ -68,7 +68,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
     instance.totalTimeServed += clearTime;
     instance.partiesServed++;
 
-    // Print party formation details
+    // Print party details
     std::cout << "Party formed and assigned to instance " << instanceId + 1 << ":\n";
     std::cout << "  Tank: Player " << instance.tankId << "\n";
     std::cout << "  Healer: Player " << instance.healerId << "\n";
@@ -80,7 +80,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
     std::cout << "\n";
     std::cout << "  Clear time: " << clearTime << " seconds\n\n";
 
-    // Spawn a thread to manage instance duration
+    // spawn thread for instance
     std::thread([this, instanceId, clearTime]() {
         std::this_thread::sleep_for(std::chrono::seconds(clearTime));
 
@@ -91,7 +91,7 @@ void DungeonQueueSystem::formParty(unsigned int instanceId) {
         }).detach();
 }
 
-// Start Method
+// start
 void DungeonQueueSystem::start() {
     std::cout << "Starting dungeon queue system with:\n";
     std::cout << "  Maximum instances: " << n << "\n";
@@ -145,7 +145,7 @@ void DungeonQueueSystem::start() {
 
         secondCounter++;
 
-        // Safety mechanism to prevent infinite loop
+        // Safety mechanism to prevent infinite loop - can be edited 
         if (secondCounter > 1000) {
             std::cout << "Maximum simulation time reached\n";
             running = false;
